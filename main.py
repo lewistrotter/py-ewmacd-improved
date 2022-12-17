@@ -1,3 +1,4 @@
+import os
 import time
 import multiprocessing
 
@@ -840,7 +841,8 @@ def ewmacd(
 
     # map and process each ewmacd onto each pixel
     # results is tuple of chart, residuals, coeffs (beta), break start, break end values
-    with multiprocessing.Pool(processes=None) as pool:
+    cpus = multiprocessing.cpu_count() - 1
+    with multiprocessing.Pool(processes=cpus) as pool:
         results = pool.map(partial(_ewmacd_core_func, **kwargs), das)
 
     # notify user of execution time
@@ -925,23 +927,59 @@ def convert_to_cube():
     #
     # ds.to_netcdf(r'C:\Users\Lewis\PycharmProjects\py-ewmacd\tests\data\angel_island.nc')
 
+def tifs_to_cube(folder):
+    """
 
+    :param folder:
+    :return:
+    """
+
+    # todo: clean this up
+    # load tifs
+    das = []
+    files = os.listdir(folder)
+    for file in files:
+        if file.endswith('.tif'):
+            dt = file.split('.')[0]
+            dt = pd.to_datetime(dt, format='%Y-%m-%d').to_datetime64()
+
+            da = xr.open_dataset(os.path.join(folder, file))
+            da = da.to_array().squeeze(drop=True)
+
+            da = da.assign_coords({'time': dt})
+            da = da.expand_dims('time')
+
+            das.append(da)
+
+    ds = xr.concat(das, 'time').to_dataset(name='veg_idx')
+    ds = ds.sortby('time')
+
+    return ds
 
 
 if __name__ == '__main__':
 
     # load dataset with x, y and time dims
-    ds = xr.open_dataset(r'./tests/data/angel_island.nc')
+    #ds = xr.open_dataset(r'./tests/data/oph_90_22_2d_clean.nc')
+
+    # load folder of tifs as cube
+    ds = tifs_to_cube(folder=r'./tests/data/bindi')
 
     #ds = ds.isel(x=slice(0, 250), y=slice(0, 250))
 
     ds = ewmacd(
         ds=ds,
         var='veg_idx',
-        train_fit_min_quality=0.90,
+        train_fit_min_quality=0.95,
+        #persistence_per_year=1.0,
+        #num_harmonics_sin=3,
         summarise='mean'
     )
 
-    ds
+    #ds.to_netcdf('out.nc')
+
+    #fig = plt.figure(figsize=[10, 8])
+    #ds['charts'].isel(time=30).plot(cmap='RdYlBu', robust=False)
+    #plt.show()
 
 
