@@ -959,11 +959,16 @@ def tifs_to_cube(folder):
 
 if __name__ == '__main__':
 
+    # todo: 99% comparbable to r
+    # todo: some issues with missing pixels (set to nan here instead of 0 in r)
+    # todo: also, a few small missing pixels early on - model sensitivty differences?
+
+
     # load dataset with x, y and time dims
-    #ds = xr.open_dataset(r'./tests/data/oph_90_22_2d_clean.nc')
+    ds = xr.open_dataset(r'./tests/data/angel_island.nc')
 
     # load folder of tifs as cube
-    ds = tifs_to_cube(folder=r'./tests/data/bindi')
+    #ds = tifs_to_cube(folder=r'./tests/data/bindi')
 
     #ds = ds.isel(x=slice(0, 250), y=slice(0, 250))
 
@@ -973,13 +978,31 @@ if __name__ == '__main__':
         train_fit_min_quality=0.95,
         #persistence_per_year=1.0,
         #num_harmonics_sin=3,
-        summarise='mean'
+        summarise='raw'
     )
 
-    #ds.to_netcdf('out.nc')
+    ds.to_netcdf('py_out.nc')
 
     #fig = plt.figure(figsize=[10, 8])
     #ds['charts'].isel(time=30).plot(cmap='RdYlBu', robust=False)
     #plt.show()
 
-
+    # ds_r = xr.open_dataset('r_out.nc')
+    # ds_p = xr.open_dataset('py_out.nc')
+    #
+    # ds_r = ds_r.rename({'band': 'time'})
+    # ds_r = ds_r.rename({'band_data': 'charts'})
+    #
+    # i = 13
+    # fig = plt.figure(figsize=[10, 8])
+    # ds_r['charts'].isel(time=i).plot(cmap='RdYlBu', robust=True)
+    # plt.show()
+    #
+    # fig = plt.figure(figsize=[10, 8])
+    # ds_p['charts'].isel(time=i).plot(cmap='RdYlBu', robust=True)
+    # plt.show()
+    #
+    # fig = plt.figure(figsize=[10, 8])
+    # ds_d = ds_r['charts'].isel(time=i) - ds_p['charts'].isel(time=i)
+    # ds_d.plot(cmap='RdYlBu', robust=True)
+    # plt.show()

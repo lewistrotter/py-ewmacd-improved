@@ -1228,8 +1228,8 @@ EWMACD <- function(inputBrick., DateInfo., trainingPeriod. = 'dynamic', training
   
 }
 
-b <- brick("C:/Users/Lewis/PycharmProjects/py-ewmacd/tests/data/Angle Index x1000 Stack.tif")
-d <- read.csv("C:/Users/Lewis/PycharmProjects/py-ewmacd/tests/data/Temporal Distribution with DOY.csv")
+b <- brick("./tests/data/Angle Index x1000 Stack.tif")
+d <- read.csv("./tests/data/Temporal Distribution with DOY.csv")
 
 out = EWMACD(
   inputBrick=b,
@@ -1237,10 +1237,12 @@ out = EWMACD(
   trainingPeriod='static',
   numberHarmonicsSine. = 2,
   numberHarmonicsCosine. = 2,
-  trainingFitMinimumQuality. = 0.90,
-  summaryMethod. = 'mean'
+  trainingFitMinimumQuality. = 0.95,
+  summaryMethod. = 'date-by-date'
 )
 
 out
+
+writeRaster(out, "r_out.tif", format="GTiff")
 
 
